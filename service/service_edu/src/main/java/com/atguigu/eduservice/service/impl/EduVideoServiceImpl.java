@@ -1,0 +1,56 @@
+package com.atguigu.eduservice.service.impl;
+
+import com.atguigu.eduservice.client.VodClient;
+import com.atguigu.eduservice.entity.EduVideo;
+import com.atguigu.eduservice.mapper.EduVideoMapper;
+import com.atguigu.eduservice.service.EduVideoService;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * <p>
+ * 课程视频 服务实现类
+ * </p>
+ *
+ * @author renyi
+ * @since 2023-04-06
+ */
+@Service
+public class EduVideoServiceImpl extends ServiceImpl<EduVideoMapper, EduVideo> implements EduVideoService {
+
+    //注入vodClient
+    @Autowired
+    private VodClient vodClient;
+
+    //1 根据课程id删除小节 删除对应视频文件
+    @Override
+    public void removeVideoByCourseId(String courseId) {
+        //1 根据课程id查询课程所有的视频id
+        QueryWrapper<EduVideo> wrapperVideo = new QueryWrapper<>();
+        wrapperVideo.eq("course_id", courseId);
+        wrapperVideo.select("video_source_id");
+        List<EduVideo> eduVideoList = baseMapper.selectList(wrapperVideo);
+
+        // List<EduVideo>变成List<String>
+        List<String> videoIds = eduVideoList.stream()
+                .filter(o -> !StringUtils.isEmpty(o.getVideoSourceId()))
+                .map(EduVideo::getVideoSourceId).collect(Collectors.toList());
+
+        //根据多个视频id删除多个视频
+        if (videoIds.size() > 0) {
+            vodClient.deleteBatch(videoIds);
+        }
+
+        QueryWrapper<EduVideo> wrapper = new QueryWrapper<>();
+        wrapper.eq("course_id", courseId);
+        baseMapper.delete(wrapper);
+    }
+}

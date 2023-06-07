@@ -18,12 +18,10 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
- * <p>
  * Security配置类
- * </p>
  *
- * @author qy
- * @since 2019-11-18
+ * @author renyi
+ * @since 2023-06-18
  */
 @Configuration
 @EnableWebSecurity
